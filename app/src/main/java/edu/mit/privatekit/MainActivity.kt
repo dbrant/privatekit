@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import kotlinx.android.synthetic.main.activity_main.*
 
 /**
@@ -38,10 +39,10 @@ class MainActivity : AppCompatActivity() {
         serviceCheckRunnable = Runnable {
             if (LocationService.IS_RUNNING) {
                 btnStartStop.text = getString(R.string.stop_logging)
-                btnStartStop.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_stop))
+                ViewCompat.setBackgroundTintList(btnStartStop, ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_stop)))
             } else {
                 btnStartStop.text = getString(R.string.start_logging)
-                btnStartStop.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_start))
+                ViewCompat.setBackgroundTintList(btnStartStop, ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_start)))
             }
             btnStartStop.postDelayed(serviceCheckRunnable, 1000)
         }
