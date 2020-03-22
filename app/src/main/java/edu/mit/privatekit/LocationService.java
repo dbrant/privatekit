@@ -29,8 +29,8 @@ public class LocationService extends Service {
     private static final String NOTIFICATION_CHANNEL_ID = "PrivateKitChannel";
     private static final String NOTIFICATION_CHANNEL_NAME = "Notification channel for PrivateKit";
 
-    private static final int LOCATION_INTERVAL = 1000;
-    private static final float LOCATION_DISTANCE = 0f;
+    private static final int LOCATION_INTERVAL = 60000;
+    private static final float LOCATION_DISTANCE = 10f;
 
     public static boolean IS_RUNNING = false;
 
