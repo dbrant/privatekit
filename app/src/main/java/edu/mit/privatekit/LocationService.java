@@ -139,8 +139,8 @@ public class LocationService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_my_location_black_24dp)
                 .setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT))
-                .setContentTitle("Title!!!")
-                .setContentText("Text!!!")
+                .setContentTitle(getString(R.string.notification_title))
+                .setContentText(getString(R.string.notification_text))
                 .setAutoCancel(false);
         return builder.build();
     }

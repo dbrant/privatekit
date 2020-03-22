@@ -31,6 +31,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        btnExport.setOnClickListener {
+            LocationWriter.shareCurrentFile(this)
+        }
+
         serviceCheckRunnable = Runnable {
             if (LocationService.IS_RUNNING) {
                 btnStartStop.text = getString(R.string.stop_logging)

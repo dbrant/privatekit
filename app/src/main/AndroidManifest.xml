@@ -23,6 +23,16 @@
 
         <service android:name=".LocationService"/>
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="edu.mit.privatekit.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
     </application>
 
 </manifest>

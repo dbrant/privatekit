@@ -6,5 +6,7 @@
 
     <color name="color_start">#008040</color>
     <color name="color_stop">#d04000</color>
+    <color name="color_export">#606080</color>
+    <color name="color_divider">#a0a0a0</color>
 
 </resources>

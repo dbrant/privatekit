@@ -1,7 +1,9 @@
 package edu.mit.privatekit;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,7 +30,9 @@ class LocationWriter {
             if (currentWriter == null || !currentFileName.equals(fileNameDateFormat.format(date))) {
                 close();
                 currentFileName = fileNameDateFormat.format(date);
-                File f = new File(context.getFilesDir() + "/" + currentFileName + ".json");
+                File dir = new File(context.getFilesDir() + "/location");
+                dir.mkdirs();
+                File f = new File(dir.getAbsolutePath() + "/" + currentFileName + ".json");
                 currentWriter = new OutputStreamWriter(new FileOutputStream(f, true));
                 currentWriter.write("[");
                 totalPointsWritten = 0;
@@ -60,5 +64,21 @@ class LocationWriter {
                 // ignore
             }
         }
+    }
+
+    public static void shareCurrentFile(@NonNull Context context) {
+        File dir = new File(context.getFilesDir() + "/location/");
+        File[] files = dir.listFiles();
+        if (files == null || files.length == 0) {
+            return;
+        }
+
+        String fileName = "content://edu.mit.privatekit.fileprovider/location/" + files[files.length - 1].getName();
+
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.setData(Uri.parse(fileName));
+        Intent shareIntent = Intent.createChooser(sendIntent, null);
+        context.startActivity(shareIntent);
     }
 }
