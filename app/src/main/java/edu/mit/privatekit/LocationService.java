@@ -7,14 +7,12 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import java.util.Date;
@@ -35,22 +33,14 @@ public class LocationService extends Service {
     public static boolean IS_RUNNING = false;
 
     private LocationManager locationManager = null;
-    private LocationListener locationListener = new LocationListener(LocationManager.GPS_PROVIDER);
+    private LocationListener locationListenerFine = new LocationListener();
+    private LocationListener locationListenerCoarse = new LocationListener();
     private LocationWriter locationWriter = new LocationWriter();
 
     private class LocationListener implements android.location.LocationListener {
-        Location lastLocation;
-
-        LocationListener(String provider) {
-            Log.d(TAG, "LocationListener " + provider);
-            lastLocation = new Location(provider);
-        }
-
         @Override
         public void onLocationChanged(Location location) {
             Log.d(TAG, "onLocationChanged: " + location);
-            lastLocation.set(location);
-
             locationWriter.addPoint(LocationService.this, location, new Date());
         }
 
@@ -94,8 +84,16 @@ public class LocationService extends Service {
 
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    LOCATION_INTERVAL, LOCATION_DISTANCE, locationListener
-            );
+                    LOCATION_INTERVAL, LOCATION_DISTANCE, locationListenerFine);
+        } catch (java.lang.SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    LOCATION_INTERVAL * 2, LOCATION_DISTANCE, locationListenerCoarse);
         } catch (java.lang.SecurityException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
@@ -111,13 +109,14 @@ public class LocationService extends Service {
         super.onDestroy();
         if (locationManager != null) {
             try {
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                locationManager.removeUpdates(locationListener);
+                locationManager.removeUpdates(locationListenerFine);
             } catch (Exception e) {
-                Log.e(TAG, "Error while removing location listener.", e);
+                // ignore
+            }
+            try {
+                locationManager.removeUpdates(locationListenerCoarse);
+            } catch (Exception e) {
+                // ignore
             }
         }
         if (locationWriter != null) {

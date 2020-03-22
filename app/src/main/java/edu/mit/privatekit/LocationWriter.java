@@ -45,8 +45,8 @@ class LocationWriter {
                 currentWriter.write(",");
             }
 
-            currentWriter.write(String.format(Locale.ROOT, "{\"latitude\":%f,\"longitude\":%f,\"time\":%d}",
-                    location.getLatitude(), location.getLongitude(), date.getTime()));
+            currentWriter.write(String.format(Locale.ROOT, "{\"latitude\":%f,\"longitude\":%f,\"altitude\":%f,\"time\":%d,\"provider\":\"%s\"}",
+                    location.getLatitude(), location.getLongitude(), location.getAltitude(), date.getTime(), location.getProvider()));
 
             totalPointsWritten++;
 
