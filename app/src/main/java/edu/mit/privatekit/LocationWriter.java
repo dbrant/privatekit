@@ -15,6 +15,7 @@ import androidx.core.content.FileProvider;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -23,29 +24,44 @@ import java.util.Locale;
  * author: Dmitry Brant, 2020
  */
 class LocationWriter {
-    @Nullable private OutputStreamWriter currentWriter;
+    //@Nullable private OutputStreamWriter currentWriter;
+
+    @Nullable private RandomAccessFile currentFile;
+
     @NonNull private String currentFileName = "";
     private int totalPointsWritten;
     private SimpleDateFormat fileNameDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
 
     void addPoint(@NonNull Context context, @NonNull Location location, Date date) {
         try {
-            if (currentWriter == null || !currentFileName.equals(fileNameDateFormat.format(date))) {
+            if (currentFile == null || !currentFileName.equals(fileNameDateFormat.format(date))) {
                 close();
                 currentFileName = fileNameDateFormat.format(date);
                 File dir = new File(context.getFilesDir() + "/location");
                 dir.mkdirs();
+
                 File f = new File(dir.getAbsolutePath() + "/" + currentFileName + ".json");
-                currentWriter = new OutputStreamWriter(new FileOutputStream(f, true));
-                currentWriter.write("[");
-                totalPointsWritten = 0;
+                boolean exists = f.exists();
+
+                currentFile = new RandomAccessFile(f, "rw");
+
+                if (!exists) {
+                    currentFile.writeBytes("[");
+                    totalPointsWritten = 0;
+                } else {
+                    totalPointsWritten = 1;
+                    currentFile.seek(currentFile.length() - 1);
+                    if ((char)currentFile.readByte() == ']') {
+                        currentFile.seek(currentFile.length() - 1);
+                    }
+                }
             }
 
             if (totalPointsWritten > 0) {
-                currentWriter.write(",");
+                currentFile.writeBytes(",");
             }
 
-            currentWriter.write(String.format(Locale.ROOT, "{\"latitude\":%f,\"longitude\":%f,\"altitude\":%f,\"time\":%d,\"provider\":\"%s\"}",
+            currentFile.writeBytes(String.format(Locale.ROOT, "{\"latitude\":%f,\"longitude\":%f,\"altitude\":%f,\"time\":%d,\"provider\":\"%s\"}",
                     location.getLatitude(), location.getLongitude(), location.getAltitude(), date.getTime(), location.getProvider()));
 
             totalPointsWritten++;
@@ -57,12 +73,11 @@ class LocationWriter {
     }
 
     void close() {
-        if (currentWriter != null) {
+        if (currentFile != null) {
             try {
-                currentWriter.write("]");
-                currentWriter.flush();
-                currentWriter.close();
-                currentWriter = null;
+                currentFile.writeBytes("]");
+                currentFile.close();
+                currentFile = null;
             } catch (Exception e) {
                 // ignore
             }
