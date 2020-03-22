@@ -1,5 +1,6 @@
 package edu.mit.privatekit;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -8,6 +9,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ShareCompat;
+import androidx.core.content.FileProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,19 +69,24 @@ class LocationWriter {
         }
     }
 
-    public static void shareCurrentFile(@NonNull Context context) {
-        File dir = new File(context.getFilesDir() + "/location/");
+    public static void shareCurrentFile(@NonNull Activity activity) {
+        File dir = new File(activity.getFilesDir() + "/location/");
         File[] files = dir.listFiles();
         if (files == null || files.length == 0) {
             return;
         }
 
-        String fileName = "content://edu.mit.privatekit.fileprovider/location/" + files[files.length - 1].getName();
+        Uri uri = FileProvider.getUriForFile(activity, BuildConfig.APPLICATION_ID + ".fileprovider", files[files.length - 1]);
 
-        Intent sendIntent = new Intent();
-        sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.setData(Uri.parse(fileName));
-        Intent shareIntent = Intent.createChooser(sendIntent, null);
-        context.startActivity(shareIntent);
+        Intent intent = ShareCompat.IntentBuilder.from(activity)
+                .setType("application/json")
+                .setStream(uri)
+                .getIntent()
+                .setAction(Intent.ACTION_SEND)
+                .setDataAndType(uri, "application/json")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        Intent chooser = Intent.createChooser(intent, null);
+        activity.startActivity(chooser);
     }
 }
