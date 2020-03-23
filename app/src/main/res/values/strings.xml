@@ -8,4 +8,7 @@
 
     <string name="logging_description">Tap the button below to start or stop logging your location. The data will be stored on your device, and will not be shared with any other apps or services.</string>
     <string name="export_description">Export your latest location log to an app of your choice:</string>
+
+    <string name="permissions_denied">Location permissions have been denied. Please allow location permissions to record location data.</string>
+    <string name="try_again">Try again</string>
 </resources>

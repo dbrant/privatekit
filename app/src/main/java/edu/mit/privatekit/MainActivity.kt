@@ -4,11 +4,14 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 /**
  * author: Dmitry Brant, 2020
@@ -64,7 +67,13 @@ class MainActivity : AppCompatActivity() {
                 if (allGranted) {
                     checkPermissionsThenStart()
                 } else {
-                    // TODO: permission denied
+                    val snackbar = Snackbar.make(containerView, R.string.permissions_denied, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.try_again) {
+                            checkPermissionsThenStart()
+                        }
+                    val textView: TextView = snackbar.getView().findViewById(R.id.snackbar_text)
+                    textView.maxLines = 5
+                    snackbar.show()
                 }
                 return
             }
@@ -75,16 +84,12 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 || ((android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
             // Permissions not granted
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // TODO: Show an explanation to the user
-            } else {
-                // request the permission
-                var permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                    permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                }
-                ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_CODE)
+            // request the permission
+            var permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             }
+            ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_CODE)
         } else {
             // Permissions granted
             LocationService.start(this)
