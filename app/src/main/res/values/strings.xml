@@ -11,4 +11,7 @@
 
     <string name="permissions_denied">Location permissions have been denied. Please allow location permissions to record location data.</string>
     <string name="try_again">Try again</string>
+
+    <string name="error_location_init">Error starting location service: %s</string>
+    <string name="error_file_write">Error saving location data: %s</string>
 </resources>

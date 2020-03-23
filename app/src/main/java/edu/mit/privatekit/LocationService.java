@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -59,7 +60,12 @@ public class LocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             Log.d(TAG, "onLocationChanged: " + location);
-            locationWriter.addPoint(LocationService.this, location, new Date());
+            try {
+                locationWriter.addPoint(LocationService.this, location, new Date());
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(LocationService.this, getString(R.string.error_file_write, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
+            }
         }
 
         @Override
@@ -105,6 +111,7 @@ public class LocationService extends Service {
                     LOCATION_INTERVAL, LOCATION_DISTANCE, locationListenerFine);
         } catch (SecurityException | IllegalArgumentException e) {
             e.printStackTrace();
+            Toast.makeText(LocationService.this, getString(R.string.error_file_write, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
         }
 
         try {
@@ -112,6 +119,7 @@ public class LocationService extends Service {
                     LOCATION_INTERVAL * 2, LOCATION_DISTANCE, locationListenerCoarse);
         } catch (SecurityException | IllegalArgumentException e) {
             e.printStackTrace();
+            Toast.makeText(LocationService.this, getString(R.string.error_file_write, e.getLocalizedMessage()), Toast.LENGTH_LONG).show();
         }
 
         persistStartedState(true);
@@ -142,7 +150,8 @@ public class LocationService extends Service {
     private Notification createNotification() {
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (notificationManager != null
+                && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
             if (notificationChannel == null) {
                 notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
