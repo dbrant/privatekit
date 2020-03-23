@@ -7,12 +7,14 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import java.util.Date;
@@ -22,6 +24,8 @@ import java.util.Date;
  */
 public class LocationService extends Service {
     private static final String TAG = "LocationService";
+    public static final String PREFS_NAME = "LocationServicePrefs";
+    public static final String PREF_IS_STARTED = "isStarted";
 
     private static final int NOTIFICATION_ID = 1001;
     private static final String NOTIFICATION_CHANNEL_ID = "PrivateKitChannel";
@@ -36,6 +40,20 @@ public class LocationService extends Service {
     private LocationListener locationListenerFine = new LocationListener();
     private LocationListener locationListenerCoarse = new LocationListener();
     private LocationWriter locationWriter = new LocationWriter();
+
+    public static void start(@NonNull Context context) {
+        Intent intent = new Intent(context, LocationService.class);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
+    }
+
+    public static void stop(@NonNull Context context) {
+        Intent intent = new Intent(context, LocationService.class);
+        context.stopService(intent);
+    }
 
     private class LocationListener implements android.location.LocationListener {
         @Override
@@ -85,26 +103,23 @@ public class LocationService extends Service {
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     LOCATION_INTERVAL, LOCATION_DISTANCE, locationListenerFine);
-        } catch (java.lang.SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
+        } catch (SecurityException | IllegalArgumentException e) {
             e.printStackTrace();
         }
 
         try {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                     LOCATION_INTERVAL * 2, LOCATION_DISTANCE, locationListenerCoarse);
-        } catch (java.lang.SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
+        } catch (SecurityException | IllegalArgumentException e) {
             e.printStackTrace();
         }
-        IS_RUNNING = true;
+
+        persistStartedState(true);
     }
 
     @Override
     public void onDestroy() {
-        IS_RUNNING = false;
+        persistStartedState(false);
         Log.d(TAG, "onDestroy");
         super.onDestroy();
         if (locationManager != null) {
@@ -142,5 +157,13 @@ public class LocationService extends Service {
                 .setContentText(getString(R.string.notification_text))
                 .setAutoCancel(false);
         return builder.build();
+    }
+
+    private void persistStartedState(boolean started) {
+        IS_RUNNING = started;
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(PREF_IS_STARTED, started);
+        editor.apply();
     }
 }

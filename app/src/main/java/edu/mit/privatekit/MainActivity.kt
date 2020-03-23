@@ -1,7 +1,6 @@
 package edu.mit.privatekit
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -15,20 +14,17 @@ import kotlinx.android.synthetic.main.activity_main.*
  * author: Dmitry Brant, 2020
  */
 class MainActivity : AppCompatActivity() {
-    private var serviceIntent: Intent? = null
     private var serviceCheckRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        serviceIntent = Intent(this, LocationService::class.java)
-
         btnStartStop.setOnClickListener {
             if (!LocationService.IS_RUNNING) {
                 checkPermissionsThenStart()
             } else {
-                stopService(serviceIntent)
+                LocationService.stop(this)
             }
         }
 
@@ -91,11 +87,7 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             // Permissions granted
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
+            LocationService.start(this)
         }
     }
 
